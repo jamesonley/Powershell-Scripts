@@ -157,7 +157,7 @@ foreach ($mail_user in ($mail_users | select -skip $index_last_user)){
     }
 
     if($inbox_rules -ne $null){
-        # Process all mail rules associated with a user. Builds and object to load into the csv file.
+        # Process all mail rules associated with a user. Builds an object to load into the csv file.
         foreach ($rule in $inbox_rules){
             if($rule.Description -ne $null){
                 
