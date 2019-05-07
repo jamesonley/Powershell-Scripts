@@ -14,11 +14,9 @@ if($script_location -ne $null){
 else{
     $script_location = "C:\scripts\get_bad_inbox_rules\"
 }
+
 $mail_users_csv = "mail_users.csv"
 $mail_rules_csv = "rules.csv"
-
-
-
 
 $mail_users_file = $script_location + $mail_users_csv
 $mail_rules_file = $script_location + $mail_rules_csv
@@ -73,10 +71,6 @@ catch{
 }
 
 Import-PSSession $EmailSession –DisableNameChecking 
-
-
-
-
 
 # Get mail users if a mail_users.csv doesn't exist
 if([System.IO.File]::Exists($mail_users_file) -eq $false){
@@ -197,8 +191,7 @@ catch{
 
 # Queries for the existing data. Once the mail rules CSV is loaded, you can quickly run different queries against the $rule_objs such as the one below. 
     #$rule_objs | where-object {$_.description -match "phishing" -or $_.description -match "helpdesk" -or $_.description -match "attack" -or $_.description -match "scam" -or $_.description -match "password" -or $_.description -match "spam" -and $_.enabled -eq $true} | select primarysmtpaddress, enabled, description | ft -wrap
-$rule_objs | out-gridview
+	$rule_objs | out-gridview
 
 remove-PSSession $EmailSession
-
 PAUSE
