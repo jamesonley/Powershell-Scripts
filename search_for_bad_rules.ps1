@@ -96,7 +96,7 @@ try{
     log_action "Success. Mail user list loaded."
 }
 catch{
-    log_action "Failure. Mail user not list loaded. Script ending."
+    log_action "Failure. Mail user list not loaded. Script ending."
     PAUSE
     break
 }
