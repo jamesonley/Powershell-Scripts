@@ -155,10 +155,6 @@ foreach ($mail_user in ($mail_users | select -skip $index_last_user)){
  
     # Process all mail rules associated with a user. Builds and object to load into the csv file.
     foreach ($rule in $inbox_rules){
-        write-host " "
-        write-host $user_address
-        write-host $rule
-        write-host " "
         $rule_description = $rule.Description
         $rule_identity = $rule.RuleIdentity
         $rule_delete_message = $rule.DeleteMessage
