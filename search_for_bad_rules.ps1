@@ -1,4 +1,4 @@
-﻿# Title: Search for Bad Rules
+# Title: Search for Bad Rules
 # Author: James Onley
 # Purpose: To search Exchange Online for malicious inbox rules. 
 # Date: May 7, 2019 5:20pm
@@ -14,9 +14,11 @@ if($script_location -ne $null){
 else{
     $script_location = "C:\scripts\get_bad_inbox_rules\"
 }
-
 $mail_users_csv = "mail_users.csv"
 $mail_rules_csv = "rules.csv"
+
+
+
 
 $mail_users_file = $script_location + $mail_users_csv
 $mail_rules_file = $script_location + $mail_rules_csv
@@ -72,6 +74,10 @@ catch{
 
 Import-PSSession $EmailSession –DisableNameChecking 
 
+
+
+
+
 # Get mail users if a mail_users.csv doesn't exist
 if([System.IO.File]::Exists($mail_users_file) -eq $false){
     log_action ""
@@ -96,7 +102,7 @@ try{
     log_action "Success. Mail user list loaded."
 }
 catch{
-    log_action "Failure. Mail user list not loaded. Script ending."
+    log_action "Failure. Mail user not list loaded. Script ending."
     PAUSE
     break
 }
@@ -138,44 +144,51 @@ foreach ($mail_user in ($mail_users | select -skip $index_last_user)){
     Write-Progress -Activity "Processing Accounts - Slow Progress Bar" -Status "$percent_complete% Complete - $i / $total" -PercentComplete $percent_complete;
     $i++
 
-    $user_address = $mail_user.PrimarySMTPAddress
-    $inbox_rules = Get-InboxRule -Mailbox $user_address
-    $rule_description = $rule.Description
-    $rule_identity = $rule.RuleIdentity
-    $rule_delete_message = $rule.DeleteMessage
-    $rule_forward_attachment = $rule.ForwardAsAttachmentTo
-    $rule_move_to_folder = $rule.MoveToFolder
-    $rule_redirect_to = $rule.RedirectTo
-    $rule_enabled = $rule.Enabled
+    $rule = $null
+    $rule_obj = $null
+    $inbox_rules = $null
+    $user_address = $null
 
-    log_action "$user_address processed"
+    $user_address = $mail_user.PrimarySMTPAddress
+    $inbox_rules = Get-InboxRule -Mailbox $user_address 
+   
+ 
+    # Process all mail rules associated with a user. Builds and object to load into the csv file.
+    foreach ($rule in $inbox_rules){
+        write-host " "
+        write-host $user_address
+        write-host $rule
+        write-host " "
+        $rule_description = $rule.Description
+        $rule_identity = $rule.RuleIdentity
+        $rule_delete_message = $rule.DeleteMessage
+        $rule_forward_attachment = $rule.ForwardAsAttachmentTo
+        $rule_move_to_folder = $rule.MoveToFolder
+        $rule_redirect_to = $rule.RedirectTo
+        $rule_enabled = $rule.Enabled
+                
+        $rule_obj = New-Object System.Object
+        $rule_Obj | Add-Member -MemberType NoteProperty -Name "PrimarySMTPAddress" -Value $user_address
+        $rule_Obj | Add-Member -MemberType NoteProperty -Name "Description" -Value $rule_description
+        $rule_Obj | Add-Member -MemberType NoteProperty -Name "RuleIdentity" -Value $rule_identity
+        $rule_Obj | Add-Member -MemberType NoteProperty -Name "DeleteMessage" -Value $rule_delete_message
+        $rule_Obj | Add-Member -MemberType NoteProperty -Name "ForwardAsAttachmentTo" -Value $rule_forward_attachment
+        $rule_Obj | Add-Member -MemberType NoteProperty -Name "MoveToFolder" -Value $rule_move_to_folder
+        $rule_Obj | Add-Member -MemberType NoteProperty -Name "RedirectTo" -Value $rule_redirect_to
+        $rule_Obj | Add-Member -MemberType NoteProperty -Name "Enabled" -Value $rule_enabled
+        log_action "Rule $rule_description discovered." 
+                                 
+        $rule_Objs += $rule_obj
+        $rule = $null
+        $rule_obj = $null
+    }
 
     # Periodically save the CSV file in case the script crashes or the server connection is lost
     if($i % 100 -eq 0){
         $rule_Objs | export-csv $mail_rules_file
         log_action "Saved mail rules to CSV file"
     }
-
-    if($inbox_rules -ne $null){
-        # Process all mail rules associated with a user. Builds an object to load into the csv file.
-        foreach ($rule in $inbox_rules){
-            if($rule.Description -ne $null){
-                
-                $rule_obj = New-Object System.Object
-                $rule_Obj | Add-Member -MemberType NoteProperty -Name "PrimarySMTPAddress" -Value $user_address
-                $rule_Obj | Add-Member -MemberType NoteProperty -Name "Description" -Value $rule_description
-                $rule_Obj | Add-Member -MemberType NoteProperty -Name "RuleIdentity" -Value $rule_identity
-                $rule_Obj | Add-Member -MemberType NoteProperty -Name "DeleteMessage" -Value $rule_delete_message
-                $rule_Obj | Add-Member -MemberType NoteProperty -Name "ForwardAsAttachmentTo" -Value $rule_forward_attachment
-                $rule_Obj | Add-Member -MemberType NoteProperty -Name "MoveToFolder" -Value $rule_move_to_folder
-                $rule_Obj | Add-Member -MemberType NoteProperty -Name "RedirectTo" -Value $rule_redirect_to
-                $rule_Obj | Add-Member -MemberType NoteProperty -Name "Enabled" -Value $rule_enabled
-                log_action "Rule $rule_description discovered." 
-                                 
-                $rule_Objs += $rule_obj
-            }
-         }
-    }
+    
 }
 $rule_Objs | export-csv $mail_rules_file
 
@@ -191,7 +204,8 @@ catch{
 
 # Queries for the existing data. Once the mail rules CSV is loaded, you can quickly run different queries against the $rule_objs such as the one below. 
     #$rule_objs | where-object {$_.description -match "phishing" -or $_.description -match "helpdesk" -or $_.description -match "attack" -or $_.description -match "scam" -or $_.description -match "password" -or $_.description -match "spam" -and $_.enabled -eq $true} | select primarysmtpaddress, enabled, description | ft -wrap
-	$rule_objs | out-gridview
+$rule_objs | out-gridview
 
 remove-PSSession $EmailSession
+
 PAUSE
