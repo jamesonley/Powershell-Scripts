@@ -8,10 +8,10 @@
 # fails. To get new data simply delete the mail_users and rules csv files. 
 
 $script_location = split-path -parent $MyInvocation.MyCommand.Definition
-$script_location = $script_location + "\"
+$script_location = $script_location
 
-$mail_users_csv = "mail_users.csv"
-$mail_rules_csv = "rules.csv"
+$mail_users_csv = "\mail_users.csv"
+$mail_rules_csv = "\rules.csv"
 
 $global:show_logs = $true
 $global:mail_users_file = $script_location + $mail_users_csv
