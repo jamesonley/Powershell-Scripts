@@ -1,7 +1,7 @@
 # Title: Search for Bad Rules
 # Author: James Onley
 # Purpose: To search Exchange Online for malicious inbox rules. 
-# Date: May 7, 2019 5:20pm
+# Date: May 9, 2019 5:00pm
 
 # Note: Connections to Exchange Online are metered and sometimes fail. For this reason the script stores 
 # data from big queries in CSV files. This prevents the query from having to run again if the connection 
@@ -16,9 +16,6 @@ else{
 }
 $mail_users_csv = "mail_users.csv"
 $mail_rules_csv = "rules.csv"
-
-
-
 
 $mail_users_file = $script_location + $mail_users_csv
 $mail_rules_file = $script_location + $mail_rules_csv
@@ -73,10 +70,6 @@ catch{
 }
 
 Import-PSSession $EmailSession –DisableNameChecking 
-
-
-
-
 
 # Get mail users if a mail_users.csv doesn't exist
 if([System.IO.File]::Exists($mail_users_file) -eq $false){
